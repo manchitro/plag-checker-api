@@ -1,0 +1,108 @@
+{
+	"info": {
+		"_postman_id": "58712fca-44b4-4258-b8b7-f1f202894bc2",
+		"name": "plag-checker-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41540876"
+	},
+	"item": [
+		{
+			"name": "get-file-list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/get-file-list",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"get-file-list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "calculate",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/calculate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"calculate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete-files",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"serial_numbers\": [1,2]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/delete-files",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"delete-files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "store-files",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "files",
+							"type": "file",
+							"src": [
+								"/C:/Users/s/OneDrive/Documents/BondNumbers.xlsx",
+								"/C:/Users/s/OneDrive/Documents/Prize Bond Numbers - Raw.csv"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:5000/store-files",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"store-files"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
