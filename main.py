@@ -1,13 +1,29 @@
 from flask import Flask, request, jsonify
 import os
-from utils import human_readable_size
+from scripts.file_comparison import compare
+from scripts.utils import human_readable_size
 
 app = Flask(__name__)
 
+in_dir = "input_files"
+out_dir = "results"
+block_size = 2
 
-@app.route("/")
-def home():
-    return "Hello World"
+
+@app.route("/calculate", methods=["GET"])
+def calculate():
+    input_directory = "input_files"
+    if not os.path.exists(input_directory):
+        return jsonify({"error": "Input directory does not exist"}), 400
+
+    file_list = sorted(os.listdir(input_directory))
+    if len(file_list) < 2:
+        return jsonify({"error": "Not enough files for comparison"}), 400
+
+    # Add your calculation logic here
+    compare(in_dir, out_dir, block_size)
+
+    return jsonify({"message": "Calculation successful"}), 200
 
 
 @app.route("/get-file-list", methods=["GET"])
