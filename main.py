@@ -10,52 +10,61 @@ out_dir = "results"
 block_size = 2
 
 
-@app.route("/calculate", methods=["GET"])
-def calculate():
-    input_directory = "input_files"
-    if not os.path.exists(input_directory):
-        return jsonify({"error": "Input directory does not exist"}), 400
+@app.route("/evaluate-file", methods=["POST"])
+def evaluate_file():
+	try:
+		if "file" not in request.files:
+			return jsonify({"error": "No file part"}), 400
 
-    file_list = sorted(os.listdir(input_directory))
-    if len(file_list) < 2:
-        return jsonify({"error": "Not enough files for comparison"}), 400
+		file = request.files["file"]
+		if file.filename == "":
+			return jsonify({"error": "No selected file"}), 400
 
-    # Add your calculation logic here
-    compare(in_dir, out_dir, block_size)
+		target_dir = "target_files"
+		if not os.path.exists(target_dir):
+			os.makedirs(target_dir)
 
-    return jsonify({"message": "Calculation successful"}), 200
+		file_path = os.path.join(target_dir, file.filename)
+		file.save(file_path)
+
+		# comparison_result = compare(file_path)
+
+		# return jsonify({"result": comparison_result}), 200
+	except Exception as e:
+		return jsonify({"error": str(e)}), 500
 
 
-@app.route("/get-file-list", methods=["GET"])
+@app.route("/get-source-file-list", methods=["GET"])
 def get_file_list():
-    input_directory = "input_files"
+	
+	try:
+		source_dir = "source_files"
 
-    if not os.path.exists(input_directory):
-        os.makedirs(input_directory)
+		if not os.path.exists(source_dir):
+			os.makedirs(source_dir)
 
-    file_list = sorted(os.listdir(input_directory))
-    if not file_list:
-        return jsonify({"error": "Not enough files for comparison"}), 400
+		file_list = sorted(os.listdir(source_dir))
+		file_objects = []
+		for idx, file_name in enumerate(file_list):
+			file_path = os.path.join(source_dir, file_name)
+			file_extension = os.path.splitext(file_name)[1][1:].upper()
+			file_size = os.path.getsize(file_path)
+			file_size = human_readable_size(file_size)
+			file_objects.append(
+				{
+					"id": idx + 1,
+					"file_name": file_name,
+					"file_extension": file_extension,
+					"file_size": file_size,
+				}
+			)
 
-    file_objects = []
-    for idx, file_name in enumerate(file_list):
-        file_path = os.path.join(input_directory, file_name)
-        file_extension = os.path.splitext(file_name)[1][1:].upper()
-        file_size = os.path.getsize(file_path)
-        file_size = human_readable_size(file_size)
-        file_objects.append(
-            {
-                "id": idx + 1,
-                "file_name": file_name,
-                "file_extension": file_extension,
-                "file_size": file_size,
-            }
-        )
-
-    return jsonify(file_objects), 200
+		return jsonify(file_objects), 200
+	except Exception as e:
+		return jsonify({"error": str(e)}), 500
 
 
-@app.route("/store-files", methods=["POST"])
+@app.route("/upload-source-files", methods=["POST"])
 def store_files():
     try:
         if "files" not in request.files:
@@ -63,12 +72,12 @@ def store_files():
 
         files = request.files.getlist("files")
         if not files:
-            return jsonify({"error": "No selected files"}), 400
+            return jsonify({"error": "At least one file is required"}), 400
 
         allowed_extensions = {"pdf", "txt", "docx", "odt"}
-        input_directory = "input_files"
-        if not os.path.exists(input_directory):
-            os.makedirs(input_directory)
+        source_dir = "source_files"
+        if not os.path.exists(source_dir):
+            os.makedirs(source_dir)
 
         stored_files_count = 0
         rejected_files_count = 0
@@ -79,7 +88,7 @@ def store_files():
                 rejected_files_count += 1
                 continue
 
-            file_path = os.path.join(input_directory, file.filename)
+            file_path = os.path.join(source_dir, file.filename)
             file.save(file_path)
             stored_files_count += 1
 
@@ -98,52 +107,55 @@ def store_files():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/delete-files", methods=["DELETE"])
+@app.route("/delete-source-files", methods=["DELETE"])
 def delete_files():
-    data = request.get_json()
-    if not data or "serial_numbers" not in data:
-        return jsonify({"error": "No serial numbers provided"}), 400
+	try:
+		data = request.get_json()
+		if not data or "serial_numbers" not in data:
+			return jsonify({"error": "No serial numbers provided"}), 400
 
-    serial_numbers = data["serial_numbers"]
-    if not isinstance(serial_numbers, list) or not all(
-        isinstance(sn, int) for sn in serial_numbers
-    ):
-        return jsonify({"error": "Invalid serial numbers format"}), 400
+		serial_numbers = data["serial_numbers"]
+		if not isinstance(serial_numbers, list) or not all(
+			isinstance(sn, int) for sn in serial_numbers
+		):
+			return jsonify({"error": "Invalid serial numbers format"}), 400
 
-    input_directory = "input_files"
-    if not os.path.exists(input_directory):
-        return jsonify({"error": "Input directory does not exist"}), 400
+		input_directory = "input_files"
+		if not os.path.exists(input_directory):
+			return jsonify({"error": "Input directory does not exist"}), 400
 
-    file_list = sorted(os.listdir(input_directory))
-    deleted_files_count = 0
-    not_found_files_count = 0
+		file_list = sorted(os.listdir(input_directory))
+		deleted_files_count = 0
+		not_found_files_count = 0
 
-    for serial_number in serial_numbers:
-        # Adjust serial_number to be 1-based index
-        adjusted_index = serial_number - 1
-        if adjusted_index < 0 or adjusted_index >= len(file_list):
-            not_found_files_count += 1
-            continue
+		for serial_number in serial_numbers:
+			# Adjust serial_number to be 1-based index
+			adjusted_index = serial_number - 1
+			if adjusted_index < 0 or adjusted_index >= len(file_list):
+				not_found_files_count += 1
+				continue
 
-        file_name = file_list[adjusted_index]
-        file_path = os.path.join(input_directory, file_name)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            deleted_files_count += 1
-        else:
-            not_found_files_count += 1
+			file_name = file_list[adjusted_index]
+			file_path = os.path.join(input_directory, file_name)
+			if os.path.exists(file_path):
+				os.remove(file_path)
+				deleted_files_count += 1
+			else:
+				not_found_files_count += 1
 
-    message_parts = []
-    if deleted_files_count > 0:
-        message_parts.append(
-            f"{deleted_files_count} file{'s' if deleted_files_count != 1 else ''} successfully deleted"
-        )
-    if not_found_files_count > 0:
-        message_parts.append(
-            f"{not_found_files_count} file{'s' if not_found_files_count != 1 else ''} not found"
-        )
+		message_parts = []
+		if deleted_files_count > 0:
+			message_parts.append(
+				f"{deleted_files_count} file{'s' if deleted_files_count != 1 else ''} successfully deleted"
+			)
+		if not_found_files_count > 0:
+			message_parts.append(
+				f"{not_found_files_count} file{'s' if not_found_files_count != 1 else ''} not found"
+			)
 
-    return jsonify({"message": ", ".join(message_parts)}), 200
+		return jsonify({"message": ", ".join(message_parts)}), 200
+	except Exception as e:
+		return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
