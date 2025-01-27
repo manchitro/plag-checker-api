@@ -5,8 +5,9 @@ from scripts.utils import human_readable_size
 
 app = Flask(__name__)
 
-in_dir = "input_files"
-out_dir = "results"
+target_dir = "target_files"
+source_dir = "source_files"
+output_dir = "results"
 block_size = 2
 
 
@@ -27,19 +28,15 @@ def evaluate_file():
 		file_path = os.path.join(target_dir, file.filename)
 		file.save(file_path)
 
-		# comparison_result = compare(file_path)
-
-		# return jsonify({"result": comparison_result}), 200
+		return compare(file_path, source_dir, output_dir, block_size)
 	except Exception as e:
 		return jsonify({"error": str(e)}), 500
 
 
 @app.route("/get-source-file-list", methods=["GET"])
 def get_file_list():
-	
-	try:
-		source_dir = "source_files"
 
+	try:
 		if not os.path.exists(source_dir):
 			os.makedirs(source_dir)
 
@@ -66,45 +63,44 @@ def get_file_list():
 
 @app.route("/upload-source-files", methods=["POST"])
 def store_files():
-    try:
-        if "files" not in request.files:
-            return jsonify({"error": "No file part"}), 400
+	try:
+		if "files" not in request.files:
+			return jsonify({"error": "No file part"}), 400
 
-        files = request.files.getlist("files")
-        if not files:
-            return jsonify({"error": "At least one file is required"}), 400
+		files = request.files.getlist("files")
+		if not files:
+			return jsonify({"error": "At least one file is required"}), 400
 
-        allowed_extensions = {"pdf", "txt", "docx", "odt"}
-        source_dir = "source_files"
-        if not os.path.exists(source_dir):
-            os.makedirs(source_dir)
+		allowed_extensions = {"pdf", "txt", "docx", "odt"}
+		if not os.path.exists(source_dir):
+			os.makedirs(source_dir)
 
-        stored_files_count = 0
-        rejected_files_count = 0
+		stored_files_count = 0
+		rejected_files_count = 0
 
-        for file in files:
-            file_extension = file.filename.rsplit(".", 1)[1].lower()
-            if file_extension not in allowed_extensions:
-                rejected_files_count += 1
-                continue
+		for file in files:
+			file_extension = file.filename.rsplit(".", 1)[1].lower()
+			if file_extension not in allowed_extensions:
+				rejected_files_count += 1
+				continue
 
-            file_path = os.path.join(source_dir, file.filename)
-            file.save(file_path)
-            stored_files_count += 1
+			file_path = os.path.join(source_dir, file.filename)
+			file.save(file_path)
+			stored_files_count += 1
 
-        message_parts = []
-        if stored_files_count > 0:
-            message_parts.append(
-                f"{stored_files_count} file{'s' if stored_files_count != 1 else ''} successfully stored"
-            )
-        if rejected_files_count > 0:
-            message_parts.append(
-                f"{rejected_files_count} file{'s' if rejected_files_count != 1 else ''} rejected because of unsupported file type"
-            )
+		message_parts = []
+		if stored_files_count > 0:
+			message_parts.append(
+				f"{stored_files_count} file{'s' if stored_files_count != 1 else ''} successfully stored"
+			)
+		if rejected_files_count > 0:
+			message_parts.append(
+				f"{rejected_files_count} file{'s' if rejected_files_count != 1 else ''} rejected because of unsupported file type"
+			)
 
-        return jsonify({"message": ". ".join(message_parts)}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+		return jsonify({"message": ". ".join(message_parts)}), 200
+	except Exception as e:
+		return jsonify({"error": str(e)}), 500
 
 
 @app.route("/delete-source-files", methods=["DELETE"])
@@ -159,4 +155,4 @@ def delete_files():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+	app.run(debug=True)
