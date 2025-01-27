@@ -63,8 +63,7 @@ def blocks_list_to_strings_list(blocks_list: list, curr_text: list) -> list:
 def writing_results(dir_name: str) -> str:
     """Create new directory for results in current working directory"""
 
-    curr_directory = path.dirname(getcwd())
-    final_directory = path.join(curr_directory, r"results/" + dir_name)
+    final_directory = path.join("results", dir_name)
     if not path.exists(final_directory):
         makedirs(final_directory)
 
