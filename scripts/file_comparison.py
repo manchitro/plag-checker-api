@@ -23,6 +23,7 @@ from scripts.html_utils import writing_results
 from scripts.processing_files import file_extension_call
 from scripts.similarity import difflib_overlap
 from scripts.utils import wait_for_file, parse_options
+from flask import Response, jsonify
 
 
 class MinimumFilesError(Exception):
@@ -43,44 +44,30 @@ class PathNotFoundError(Exception):
     pass
 
 
-def compare(in_dir: str, out_dir: str, block_size: int) -> None:
-    """
-    Compare function to process and compare text files.
+def compare(target_file_path: str, source_dir: str, out_dir: str, block_size: int) -> Response:
 
-    Receives arguments to obtain input and output directories and block size for comparison.
-    Validates the input directory and checks if there are at least two files for comparison.
-    Processes each file in the input directory, extracting text and handling different file formats.
-    Calculates similarity scores between each pair of processed files using difflib.
-    Generates and writes HTML files with colored comparison results in the specified output directory.
-    Creates a summary results HTML file with links to individual comparisons and opens it in a web browser.
-    Exits the program if the specified path does not exist, or if there are fewer than two files for comparison.
-    """
+    if not path.isfile(target_file_path) or not target_file_path.endswith(("txt", "pdf", "docx", "odt")):
+        return jsonify({"error": "Invalid target file path or unsupported file type."}), 400
 
-    if not path.exists(in_dir):
-        raise PathNotFoundError(f"The specified path does not exist: {in_dir}")
-
-    if not path.isabs(in_dir):
-        in_dir = path.abspath(in_dir)
-
-    files = [
+    source_files = [
         f
-        for f in listdir(in_dir)
-        if path.isfile(path.join(in_dir, f))
+        for f in listdir(source_dir)
+        if path.isfile(path.join(source_dir, f))
         and f.endswith(("txt", "pdf", "docx", "odt"))
     ]
 
-    if len(files) < 2:
-        raise MinimumFilesError(
-            "Minimum number of files is not present. Please check that there are at least two files to compare."
-        )
+    if len(source_files) < 1:
+        return jsonify({"error": "At least one srouce file is required for comparison."}), 400
 
-    filenames, processed_files = [], []
+    source_filenames, processed_source_files = [], []
+    target_file_name = path.splitext(path.basename(target_file_path))[0]
+    processed_target_file = file_extension_call(target_file_path)
 
-    for file in tqdm(files, desc="Processing Files"):
-        file_words = file_extension_call(str(path.join(in_dir, file)))
+    for file in tqdm(source_files, desc="Processing Files"):
+        file_words = file_extension_call(str(path.join(source_dir, file)))
         if file_words:  # If all files have supported format
-            processed_files.append(file_words)
-            filenames.append(path.splitext(file)[0])
+            processed_source_files.append(file_words)
+            source_filenames.append(path.splitext(file)[0])
         else:
             raise UnsupportedFileError(
                 "Remove files which are not txt, pdf, docx, or odt and run the script again."
@@ -93,11 +80,11 @@ def compare(in_dir: str, out_dir: str, block_size: int) -> None:
     else:
         results_directory = writing_results(datetime.now().strftime("%Y%m%d_%H%M%S"))
 
-    difflib_scores: List[List[float]] = [[] for _ in range(len(processed_files))]
+    difflib_scores: List[List[float]] = [[] for _ in range(len(processed_source_files))]
     file_ind = 0
 
-    for i, text in enumerate(tqdm(processed_files, desc="Comparing Files")):
-        for j, text_bis in enumerate(processed_files):
+    for i, text in enumerate(tqdm(processed_source_files, desc="Comparing Files")):
+        for j, text_bis in enumerate(processed_source_files):
             if i != j:
                 difflib_scores[i].append(difflib_overlap(text, text_bis))
                 papers_comparison(
