@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, send_file
 import os
 from scripts.file_comparison import compare
 from scripts.utils import human_readable_size
+from flask import send_file
+import zipfile
+import io
 
 app = Flask(__name__)
 
@@ -177,6 +180,30 @@ def download_results_html():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/download-all-timestamp", methods=["GET"])
+def download_all_timestamp():
+	try:
+		timestamp = request.args.get("timestamp")
+
+		if not timestamp:
+			return jsonify({"error": "Missing timestamp parameter"}), 400
+
+		folder_path = os.path.join(output_dir, timestamp)
+
+		if not os.path.exists(folder_path):
+			return jsonify({"error": "Folder not found"}), 404
+
+		zip_buffer = io.BytesIO()
+		with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+			for root, _, files in os.walk(folder_path):
+				for file in files:
+					file_path = os.path.join(root, file)
+					zip_file.write(file_path, os.path.relpath(file_path, folder_path))
+
+		zip_buffer.seek(0)
+		return send_file(zip_buffer, as_attachment=True, download_name=f"{timestamp}.zip")
+	except Exception as e:
+		return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

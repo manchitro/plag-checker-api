@@ -143,6 +143,31 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "download-all-timestamp",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/download-all-timestamp?timestamp=20250130203533",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"download-all-timestamp"
+					],
+					"query": [
+						{
+							"key": "timestamp",
+							"value": "20250130203533"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
