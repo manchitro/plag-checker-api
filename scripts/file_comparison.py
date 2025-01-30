@@ -44,10 +44,17 @@ class PathNotFoundError(Exception):
     pass
 
 
-def compare(target_file_path: str, source_dir: str, out_dir: str, block_size: int) -> Response:
+def compare(
+    target_file_path: str, source_dir: str, out_dir: str, block_size: int
+) -> Response:
 
-    if not path.isfile(target_file_path) or not target_file_path.endswith(("txt", "pdf", "docx", "odt")):
-        return jsonify({"error": "Invalid target file path or unsupported file type."}), 400
+    if not path.isfile(target_file_path) or not target_file_path.endswith(
+        ("txt", "pdf", "docx", "odt")
+    ):
+        return (
+            jsonify({"error": "Invalid target file path or unsupported file type."}),
+            400,
+        )
 
     source_files = [
         f
@@ -57,7 +64,10 @@ def compare(target_file_path: str, source_dir: str, out_dir: str, block_size: in
     ]
 
     if len(source_files) < 1:
-        return jsonify({"error": "At least one srouce file is required for comparison."}), 400
+        return (
+            jsonify({"error": "At least one srouce file is required for comparison."}),
+            400,
+        )
 
     source_filenames, processed_source_files = [], []
     target_file_name = path.splitext(path.basename(target_file_path))[0]

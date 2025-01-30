@@ -34,7 +34,10 @@ def file_extension_call(file: str) -> list:
     elif extension == ".txt":
         return get_words_from_txt_file(file)
     else:
-        raise ValueError(f"File format not supported for file: {file}. " f"Please convert to pdf, docx, odt, or txt")
+        raise ValueError(
+            f"File format not supported for file: {file}. "
+            f"Please convert to pdf, docx, odt, or txt"
+        )
 
 
 def get_words_from_pdf_file(pdf_path: str) -> list:
