@@ -1,4 +1,6 @@
 __pycache__/
 .venv/
 bak/
-input_files/
+source_files/
+target_files/
+results/
