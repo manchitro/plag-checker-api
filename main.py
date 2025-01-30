@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import os
 from scripts.file_comparison import compare
 from scripts.utils import human_readable_size
@@ -150,6 +150,30 @@ def delete_files():
             )
 
         return jsonify({"message": ", ".join(message_parts)}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/download-results-html", methods=["GET"])
+def download_results_html():
+    try:
+        timestamp = request.args.get("timestamp")
+        index = request.args.get("index")
+
+        if not timestamp or not index:
+            return jsonify({"error": "Missing timestamp or index parameter"}), 400
+
+        try:
+            index = int(index)
+        except ValueError:
+            return jsonify({"error": "Index must be an integer"}), 400
+
+        file_path = os.path.join(output_dir, timestamp, f"{index}.html")
+
+        if os.path.exists(file_path):
+            return send_file(file_path, as_attachment=True)
+        else:
+            return jsonify({"error": "File not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

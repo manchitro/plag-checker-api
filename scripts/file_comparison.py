@@ -72,7 +72,6 @@ def compare(
     source_filenames, source_files_text = [], []
     target_file_name = path.basename(target_file_path)
     target_file_text = file_extension_call(target_file_path)
-    generated_results_paths = []
 
     for file in source_files:
         file_words = file_extension_call(str(path.join(source_dir, file)))
@@ -91,16 +90,14 @@ def compare(
 
     for i, source_text in enumerate(source_files_text):
         difflib_scores[i] = difflib_overlap(target_file_text, source_text)
-        results_path = papers_comparison(
+        saved_path = papers_comparison(
             results_directory,
-            timestamp,
             file_ind,
             source_text,
             target_file_text,
             (source_filenames[i], target_file_name),
             block_size,
         )
-        generated_results_paths.append(results_path)
         print(
             "Compared ",
             target_file_name,
@@ -108,15 +105,20 @@ def compare(
             source_filenames[i],
             "\twith difflib score:",
             difflib_scores[i],
-            "\t and saved to ",
-            results_path,
+            "\t and saved to",
+            saved_path,
         )
         file_ind += 1
 
     results_json = {
         "target_file": target_file_name,
         "source_files": [
-            {"source_filename": source_filenames[i], "difflib_score": difflib_scores[i], "results_file_path": generated_results_paths[i]}
+            {
+                "source_filename": source_filenames[i],
+                "difflib_score": difflib_scores[i],
+                "timestamp": timestamp,
+                "index": i,
+            }
             for i in range(len(source_filenames))
         ],
     }

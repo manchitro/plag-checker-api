@@ -153,6 +153,8 @@ def papers_comparison(
     with open(comp_path, "wb") as f_output:
         f_output.write(soup.prettify("utf-8"))
 
+    return comp_path
+
 
 def results_to_html(scores: list, files_names: list, html_path: str) -> None:
     """Write similarity results to HTML page"""

@@ -7,51 +7,32 @@
 	},
 	"item": [
 		{
-			"name": "get-file-list",
+			"name": "get-source-file-list",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:5000/get-file-list",
+					"raw": "http://localhost:5000/get-source-file-list",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "5000",
 					"path": [
-						"get-file-list"
+						"get-source-file-list"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "calculate",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/calculate",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"calculate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "delete-files",
+			"name": "delete-source-files",
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"serial_numbers\": [1,2]\r\n}",
+					"raw": "{\r\n    \"serial_numbers\": [3]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -59,21 +40,21 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:5000/delete-files",
+					"raw": "http://localhost:5000/delete-source-files",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "5000",
 					"path": [
-						"delete-files"
+						"delete-source-files"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "store-files",
+			"name": "upload-source-files",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -84,21 +65,80 @@
 							"key": "files",
 							"type": "file",
 							"src": [
-								"/C:/Users/s/OneDrive/Documents/BondNumbers.xlsx",
-								"/C:/Users/s/OneDrive/Documents/Prize Bond Numbers - Raw.csv"
+								"/C:/Users/s/repo/plag-checker-api/bak/jnu-medm-form.pdf",
+								"/C:/Users/s/repo/plag-checker-api/bak/sazid_cv_uw_madison.pdf",
+								"/C:/Users/s/repo/plag-checker-api/bak/sazid_resume_masters_unc.pdf"
 							]
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:5000/store-files",
+					"raw": "http://localhost:5000/upload-source-files",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "5000",
 					"path": [
-						"store-files"
+						"upload-source-files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "evaluate-file",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:5000/evaluate-file",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"evaluate-file"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download-results-html",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/download-results-html?timestamp=20250130203533&index=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"download-results-html"
+					],
+					"query": [
+						{
+							"key": "timestamp",
+							"value": "20250130203533"
+						},
+						{
+							"key": "index",
+							"value": "1"
+						}
 					]
 				}
 			},
