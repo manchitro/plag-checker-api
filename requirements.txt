@@ -5,3 +5,4 @@ tabulate==0.8.9
 tqdm==4.66.3
 pdfminer.six==20200517
 flask==3.1.0
+pdfkit==0.6.1

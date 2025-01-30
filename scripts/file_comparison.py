@@ -69,53 +69,56 @@ def compare(
             400,
         )
 
-    source_filenames, processed_source_files = [], []
-    target_file_name = path.splitext(path.basename(target_file_path))[0]
-    processed_target_file = file_extension_call(target_file_path)
+    source_filenames, source_files_text = [], []
+    target_file_name = path.basename(target_file_path)
+    target_file_text = file_extension_call(target_file_path)
+    generated_results_paths = []
 
-    for file in tqdm(source_files, desc="Processing Files"):
+    for file in source_files:
         file_words = file_extension_call(str(path.join(source_dir, file)))
         if file_words:  # If all files have supported format
-            processed_source_files.append(file_words)
-            source_filenames.append(path.splitext(file)[0])
+            source_files_text.append(file_words)
+            source_filenames.append(file)
         else:
             raise UnsupportedFileError(
                 "Remove files which are not txt, pdf, docx, or odt and run the script again."
             )
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    results_directory = writing_results(timestamp)
 
-    if out_dir is not None and path.exists(out_dir):
-        if not path.isabs(out_dir):
-            out_dir = path.abspath(out_dir)
-        results_directory = out_dir
-    else:
-        results_directory = writing_results(datetime.now().strftime("%Y%m%d_%H%M%S"))
-
-    difflib_scores: List[List[float]] = [[] for _ in range(len(processed_source_files))]
+    difflib_scores: List[float] = [0.0 for _ in range(len(source_files_text))]
     file_ind = 0
 
-    for i, text in enumerate(tqdm(processed_source_files, desc="Comparing Files")):
-        for j, text_bis in enumerate(processed_source_files):
-            if i != j:
-                difflib_scores[i].append(difflib_overlap(text, text_bis))
-                papers_comparison(
-                    results_directory,
-                    file_ind,
-                    text,
-                    text_bis,
-                    (filenames[i], filenames[j]),
-                    block_size,
-                )
-                file_ind += 1
-            else:
-                difflib_scores[i].append(-1)
+    for i, source_text in enumerate(source_files_text):
+        difflib_scores[i] = difflib_overlap(target_file_text, source_text)
+        results_path = papers_comparison(
+            results_directory,
+            timestamp,
+            file_ind,
+            source_text,
+            target_file_text,
+            (source_filenames[i], target_file_name),
+            block_size,
+        )
+        generated_results_paths.append(results_path)
+        print(
+            "Compared ",
+            target_file_name,
+            "with ",
+            source_filenames[i],
+            "\twith difflib score:",
+            difflib_scores[i],
+            "\t and saved to ",
+            results_path,
+        )
+        file_ind += 1
 
-    results_directory = path.join(results_directory, "_results.html")
-    print(f"Results saved at: {results_directory}")
+    results_json = {
+        "target_file": target_file_name,
+        "source_files": [
+            {"source_filename": source_filenames[i], "difflib_score": difflib_scores[i], "results_file_path": generated_results_paths[i]}
+            for i in range(len(source_filenames))
+        ],
+    }
 
-    results_to_html(difflib_scores, filenames, results_directory)
-
-    if wait_for_file(results_directory, 60):  # Wait for file to be created
-        add_links_to_html_table(results_directory)
-        webbrowser.open(results_directory)  # Open results HTML table
-    else:
-        raise RuntimeError("Results file was not created...")
+    return jsonify(results_json)

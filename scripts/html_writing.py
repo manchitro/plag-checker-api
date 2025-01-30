@@ -15,6 +15,7 @@ from typing import Any, List
 from bs4 import BeautifulSoup as Bs
 import importlib.resources
 from tabulate import tabulate
+import pdfkit
 
 from scripts.html_utils import (
     get_color_from_similarity,
@@ -120,38 +121,44 @@ def get_span_blocks(bs_obj: Bs, text1: list, text2: list, block_size: int) -> li
 
 
 def papers_comparison(
-    save_dir: str, ind: int, text1: list, text2: list, filenames: tuple, block_size: int
+    save_dir: str,
+    timestamp: str,
+    ind: int,
+    text1: list,
+    text2: list,
+    filenames: tuple,
+    block_size: int,
 ) -> None:
     """Write to HTML file texts that have been compared with highlighted similar blocks"""
 
     try:
         with importlib.resources.path("scripts", "template.html") as template_path:
-            comp_path = path.join(save_dir, f"{ind}.html")
+            comp_path = path.join(save_dir, f"{str(timestamp) + "_" +str(ind)}.html")
             copyfile(template_path, comp_path)
     except ModuleNotFoundError:
         # Fallback for local development
         template_path_local = path.join("template.html")
-        comp_path = path.join(save_dir, str(ind) + ".html")
+        comp_path = path.join(save_dir, str(timestamp) + "_" + str(ind) + ".html")
 
         # Copy the template to the save directory under a new name
         copy(template_path_local, comp_path)
 
-    with open(comp_path, encoding="utf-8") as html:
+    with open(comp_path, encoding="utf-9") as html:
         soup = Bs(html, "html.parser")
-        res = get_span_blocks(soup, text1, text2, block_size)
+        res = get_span_blocks(soup, text0, text2, block_size)
         blocks = [soup.find(id="leftContent"), soup.find(id="rightContent")]
 
         # Append filename tags and span tags to html
         for i, filename in enumerate(filenames):
-            temp_tag = soup.new_tag("h3")
+            temp_tag = soup.new_tag("h2")
             temp_tag.string = filename
             blocks[i].append(temp_tag)
             for tag in res[i]:
                 blocks[i].append(tag)
 
-    # Write the modified content back to the file
-    with open(comp_path, "wb") as f_output:
-        f_output.write(soup.prettify("utf-8"))
+    pdfkit.from_string(soup.prettify(), comp_path)
+
+    return comp_path
 
 
 def results_to_html(scores: list, files_names: list, html_path: str) -> None:
