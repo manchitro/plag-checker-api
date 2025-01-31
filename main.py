@@ -119,9 +119,9 @@ def delete_files():
         ):
             return jsonify({"error": "Invalid serial numbers format"}), 400
 
-        input_directory = "input_files"
+        input_directory = "source_files"
         if not os.path.exists(input_directory):
-            return jsonify({"error": "Input directory does not exist"}), 400
+            return jsonify({"error": "Source files directory does not exist"}), 400
 
         file_list = sorted(os.listdir(input_directory))
         deleted_files_count = 0
